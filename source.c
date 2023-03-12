@@ -1,6 +1,8 @@
 //Определим типы byte (байт), word (слово), address (адрес байта или слова).
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #define MEMSIZE (64*1024)   // размер памяти 64 килобайта
 
@@ -20,10 +22,40 @@ void w_write (address adr, word val); // пишем значение (слово
 
 word w_read (address adr);            // читаем слово по адресу adr и возвращаем его
 
-void test_mem(void);
+void test_mem();
 
-void size_of_data(void);
+void size_of_data();
 
+void load_data();
+
+void mem_dump(address adr, int size);
+
+void load_file(const char * filename)
+{	
+	FILE * fin  = fopen(filename, "r");   // открыть файл data.txt на чтение - поток fin
+    if (fin == NULL) {
+		perror("ERROR");
+		printf("FILE:  %s\n", filename);
+        exit(errno);
+    }
+	
+	address adr;
+    address size;
+	byte val;
+	while(fscanf(fin, "%04hx %04hx", &adr, &size) != EOF){
+		for(address i = 0; i < size; i++){
+			fscanf(fin, "%04hhx", &val);
+			b_write(adr+i, val);
+		}
+	}
+	fclose(fin);	
+}
+
+void mem_dump(address adr, int size)
+{
+	for(int i = 0; i < size; i += 2)
+		printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i));
+}
 void size_of_data()
 {
 	printf("byte = %zd\n", sizeof(byte));
@@ -105,6 +137,8 @@ void test_mem()
 
 int main()
 {
-	test_mem();
+	//test_mem();
+	load_file("data.txt");
+	mem_dump(0x0200,  0x000c);
 	return 0;
 }
