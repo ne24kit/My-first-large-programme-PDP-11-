@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #define MEMSIZE (64*1024)   // размер памяти 64 килобайта
 
@@ -29,6 +30,12 @@ void size_of_data();
 void load_data();
 
 void mem_dump(address adr, int size);
+
+void load_file(const char * filename);
+
+void how_to_use_keys(const char * progname);
+
+
 
 void load_file(const char * filename)
 {	
@@ -135,10 +142,31 @@ void test_mem()
 	fprintf(stderr, "Тесты пройдены успешно!\n");
 }
 
-int main()
+void how_to_use_keys(const char * progname)
+{
+	printf("to compile use: %s [-t] <filename>\n    <filename> - <input data>\n", progname);
+}
+
+int main(int argc, char * argv[])
 {
 	//test_mem();
-	load_file("data.txt");
+	
+	if(argc == 1 || argc == 2) {
+		how_to_use_keys(argv[0]);
+		exit(1);
+	}
+	
+	
+	const char * filename = argv[argc-1];
+	
+	char trace = 0;
+	
+    if (argc == 3 && (0 == strcmp("-t", argv[1])))
+        trace = 1;
+	
+	load_file(argv[2]);
+	
 	mem_dump(0x0200,  0x000c);
+	
 	return 0;
 }
