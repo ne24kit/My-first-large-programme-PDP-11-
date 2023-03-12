@@ -1,5 +1,11 @@
 //Определим типы byte (байт), word (слово), address (адрес байта или слова).
 #include <stdio.h>
+
+#define MEMSIZE (64*1024)   // размер памяти 64 килобайта
+
+byte mem[MEMSIZE];          // объявляем массив mem - "память" компьютера PDP-11 как глобальную переменную
+
+
 typedef char byte;
 
 typedef short word;
