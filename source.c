@@ -12,6 +12,14 @@ typedef short word;
 
 typedef word address;
 
+void b_write (adress adr, byte val); // пишем значение (байт) val по адресу adr
+
+byte b_read (adress adr);            // читаем байт по адресу adr и возвращаем его
+
+void w_write (adress adr, word val); // пишем значение (слово) val по адресу adr
+
+word w_read (adress adr);            // читаем слово по адресу adr и возвращаем его
+
 void size_of_data()
 {
 	printf("byte = %zd\n", sizeof(byte));
