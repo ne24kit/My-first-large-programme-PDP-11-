@@ -123,6 +123,20 @@ void test_mem()
 	log(DEBUG, "a=%06o b1=%02hhx b0=%02hhx wres=%04x\n", a, b1, b0, wres);
 	assert(w == wres);
 	
+	//пишем 1 слово, читаем 2 байта
+	log(DEBUG, "Пишем 2 байта, читаем слово\n");
+	a = 4;		// другой адрес
+	w = 0xa1b2;
+	b0 = 0xb2;
+	b1 = 0xa1;
+	// little-endian, младшие разряды по меньшему адресу
+	w_write(a, w);
+	byte b0_res = b_read(a);
+	byte b1_res = b_read(a+1);
+
+	log(DEBUG, "a=%06o b1=%02hhx b0=%02hhx b1_res=%02hhx b0_res=%02hhx\n ", a, b1, b0, b1_res, b0_res);
+	assert(b0 == b0_res && b1 == b1_res);
+	
 	log(DEBUG, "Тесты пройдены успешно!\n");
 }
 
@@ -134,7 +148,7 @@ void how_to_use_keys(const char * progname)
 int main(int argc, char * argv[])
 {	
 	set_log_level(DEBUG);
-	//test_mem();
+	test_mem();
 
 	if(argc == 1 || argc == 2) {
 		how_to_use_keys(argv[0]);
