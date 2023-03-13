@@ -23,8 +23,6 @@ typedef unsigned short word;
 
 typedef word address;
 
-byte mem[MEMSIZE];		  // объявляем массив mem - "память" компьютера PDP-11 как глобальную переменную
-
 void b_write (address adr, byte val); // пишем значение (байт) val по адресу adr
 
 byte b_read (address adr);			// читаем байт по адресу adr и возвращаем его

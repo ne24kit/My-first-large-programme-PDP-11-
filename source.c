@@ -1,5 +1,9 @@
 #include "header.h"
 
+byte mem[MEMSIZE];		  // объявляем массив mem - "память" компьютера PDP-11 как глобальную переменную
+
+word reg[8];    	      // reg[i] - это регистр Ri
+
 int level;
 
 int set_log_level(int new_level)
