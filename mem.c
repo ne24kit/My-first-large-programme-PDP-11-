@@ -15,6 +15,10 @@ byte b_read (address adr)
 }
 void w_write (address adr, word val)
 {
+	if(adr < 8) {
+		reg[adr] = val;
+		return;
+	}
 	mem[adr] = (byte)val;
 	mem[adr + 1] = (byte)(val >> 8);
 }

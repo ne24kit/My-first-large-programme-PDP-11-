@@ -1,15 +1,17 @@
 #include <stdio.h>
+
 #include "mem.h"
 #include "test_mem.h"
-
+#include "test_reg.h"
 #include "run.h"
-
 #include "log.h"
 
 int main(int argc, char * argv[])
 {	
 	set_Log_level(DEBUG);
+	
 	test_mem();
+	tests_on_cmd();
 
 	if(argc == 1 || argc == 2) {
 		how_to_use_keys(argv[0]);

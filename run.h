@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+
 #include "log.h"
 
 #include "mem.h"
@@ -13,7 +14,22 @@ typedef struct {
     void (*do_command)(void);
 } Command;
 
-void run(void);
+typedef struct {
+    word val;     // значение (что)
+    address adr;    // адрес (куда)
+} Arg;
+
+Arg get_mr(word w);
+
+void registers_on_null();
+
+Command parse_cmd(word w);
+
+word read_cmd();
+
+void reg_dump();
+
+void run();
 
 void do_halt();
 
