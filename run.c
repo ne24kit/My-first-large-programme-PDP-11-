@@ -2,6 +2,7 @@
 
 extern word reg[REGSIZE];
 
+
 Arg get_mr(word w);
 
 Arg ss, dd;
@@ -35,12 +36,12 @@ void do_nothing()
 }
 
 Command command[] = {
-    {0170000, 0060000, "add",  do_add},
-	{0170000, 0010000, "mov",  do_mov},
-	{0177777, 0000000, "halt", do_halt},
-	{0177700, 0005200, "inc",  do_inc},
-	{0177000, 0077000, "sob",  do_sob},
-	{0000000, 0000000, "unknown", do_nothing} //всегда в конце массива!!!
+    {0170000, 0060000, "add",  do_add, HAS_SS | HAS_DD},
+	{0170000, 0010000, "mov",  do_mov, HAS_SS | HAS_DD},
+	{0177777, 0000000, "halt", do_halt, NO_PARAMS},
+	{0177700, 0005200, "inc",  do_inc, HAS_DD},
+	//{0177000, 0077000, "sob",  do_sob, HAS_NN}, TODO: HAS_SS
+	{0000000, 0000000, "unknown", do_nothing, NO_PARAMS} //всегда в конце массива!!!
 };
 
 Arg get_mr(word w)
@@ -72,11 +73,35 @@ Arg get_mr(word w)
         else
             Log(TRACE, "(R%d)+ ", r);
         break;
-
-
+	// мода 3, @(R1)+
+	case 3:
+		res.adr = w_read(reg[r]);
+		res.val = w_read(res.adr);
+		reg[r] += 2;
+		// печать разной мнемоники для PC и других регистров
+		if (r == 7)
+			Log(TRACE, "@#%o", res.val);
+		else
+			Log(TRACE, "@(R%d)+ ", r);
+		break;
+	// мода 4, -(Rn)
+	case 4:
+		reg[r] -= 2;
+		res.adr = reg[r];
+		res.val = w_read(res.adr);
+		Log(TRACE, "-(R%d) ", r);
+		break;
+	// мода 5, @-(Rn)
+	case 5:
+		reg[r] -= 2;
+		res.adr = w_read(reg[r]);
+		res.val = w_read(res.adr);
+		Log(TRACE, "@-(R%d) ", r);
+		break;
+		
     // мы еще не дописали другие моды
     default:
-        Log(ERROR, "Mode %d not implemented yet!\n", m);
+        Log(ERROR, "\nMode %d not implemented yet!\n", m);
         //exit(1);
 		break;
 	}
@@ -105,8 +130,10 @@ Command parse_cmd(word w)
 		if ((w & command[i].mask) == command[i].opcode) {
 			Log(TRACE, "%s ", command[i].name);
 			if (command[i].mask != 0177777) { //halt не должен печатать R0 R0!!!
-				dd = get_mr(w);
-				ss = get_mr(w >> 6);
+				if (command[i].params & HAS_SS)
+					ss = get_mr(w >> 6);
+				if (command[i].params & HAS_DD)
+					dd = get_mr(w);
 			}
 			else
 				Log(TRACE, "\n");

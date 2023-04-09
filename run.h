@@ -2,16 +2,21 @@
 
 #include <stdio.h>
 
-
 #include "log.h"
 
 #include "mem.h"
+
+#define NO_PARAMS 0
+#define HAS_DD 1
+#define HAS_SS 2
+#define HAS_NN 4
 
 typedef struct {
     word mask;
     word opcode;
     char * name;
     void (*do_command)(void);
+	char params;
 } Command;
 
 typedef struct {
