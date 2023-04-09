@@ -35,3 +35,5 @@ void load_data();
 void mem_dump(address adr, int size);
 
 void load_file(const char * filename);
+
+void mem_clear();

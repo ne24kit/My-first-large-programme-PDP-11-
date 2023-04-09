@@ -57,6 +57,11 @@ void mem_dump(address adr, int size)
 		printf("%06o: %06o %04x\n", adr + i, w_read(adr + i), w_read(adr + i));
 }
 
+void mem_clear()
+{
+	memset(mem, 0, sizeof(mem));
+}
+
 void how_to_use_keys(const char * progname)
 {
 	printf("to compile use: %s [-t] <filename>\n	<filename> - <input data>\n", progname);
