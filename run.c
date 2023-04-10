@@ -5,7 +5,7 @@ extern word reg[REGSIZE];
 
 Arg get_mr(word w);
 
-Arg ss, dd;
+Arg ss, dd, rnn;
 
 void do_halt()
 {
@@ -24,7 +24,9 @@ void do_mov()
 }
 void do_sob()
 {
-	
+	if (--reg[rnn.adr] == 0)
+		return;
+	pc -= 2*rnn.val;
 }
 void do_inc()
 {
@@ -40,7 +42,7 @@ Command command[] = {
 	{0170000, 0010000, "mov",  do_mov, HAS_SS | HAS_DD},
 	{0177777, 0000000, "halt", do_halt, NO_PARAMS},
 	{0177700, 0005200, "inc",  do_inc, HAS_DD},
-	//{0177000, 0077000, "sob",  do_sob, HAS_NN}, TODO: HAS_SS
+	{0177000, 0077000, "sob",  do_sob, HAS_NN | HAS_R}, 
 	{0000000, 0000000, "unknown", do_nothing, NO_PARAMS} //всегда в конце массива!!!
 };
 
@@ -80,7 +82,7 @@ Arg get_mr(word w)
 		reg[r] += 2;
 		// печать разной мнемоники для PC и других регистров
 		if (r == 7)
-			Log(TRACE, "@#%o", res.val);
+			Log(TRACE, "@#%o ", res.val);
 		else
 			Log(TRACE, "@(R%d)+ ", r);
 		break;
@@ -105,6 +107,17 @@ Arg get_mr(word w)
         //exit(1);
 		break;
 	}
+	return res;
+}
+
+Arg get_rnn(word w)
+{
+	Arg res;
+	int r = (w >> 6) & 7;
+	int nn = w & 077;
+	res.adr = r;  // адрес 
+	res.val = nn; // смещение
+	Log(TRACE, "R%d %06o ", r, pc - 2*nn);
 	return res;
 }
 
@@ -134,6 +147,8 @@ Command parse_cmd(word w)
 					ss = get_mr(w >> 6);
 				if (command[i].params & HAS_DD)
 					dd = get_mr(w);
+				if (command[i].params & (HAS_NN | HAS_R))
+					rnn = get_rnn(w);
 			}
 			else
 				Log(TRACE, "\n");

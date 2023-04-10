@@ -10,6 +10,7 @@
 #define HAS_DD 1
 #define HAS_SS 2
 #define HAS_NN 4
+#define HAS_R  8
 
 typedef struct {
     word mask;
@@ -25,6 +26,8 @@ typedef struct {
 } Arg;
 
 Arg get_mr(word w);
+
+Arg get_rn(word w);
 
 void registers_on_null();
 
