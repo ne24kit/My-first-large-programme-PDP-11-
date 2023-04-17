@@ -2,10 +2,20 @@
 
 extern word reg[REGSIZE];
 
-
 Arg get_mr(word w);
 
 Arg ss, dd, rnn;
+
+word flag_b_cmd;
+
+word is_byte_cmd(word w)
+{
+	if (w & 0100000)
+		flag_b_cmd = 1;
+	else
+		flag_b_cmd = 0;
+	return  w;
+}
 
 void do_halt()
 {
@@ -21,6 +31,10 @@ void do_add()
 void do_mov() 
 {
 	w_write(dd.adr, ss.val);
+}
+void do_movb()
+{
+	b_write(dd.adr, ss.val);
 }
 void do_sob()
 {
@@ -40,6 +54,7 @@ void do_nothing()
 Command command[] = {
     {0170000, 0060000, "add",  do_add, HAS_SS | HAS_DD},
 	{0170000, 0010000, "mov",  do_mov, HAS_SS | HAS_DD},
+	{0170000, 0110000, "movb", do_movb, HAS_SS | HAS_DD},
 	{0177777, 0000000, "halt", do_halt, NO_PARAMS},
 	{0177700, 0005200, "inc",  do_inc, HAS_DD},
 	{0177000, 0077000, "sob",  do_sob, HAS_NN | HAS_R}, 
@@ -67,8 +82,16 @@ Arg get_mr(word w)
     // мода 2, (R1)+ или #3
     case 2:
         res.adr = reg[r];           // в регистре адрес
-        res.val = w_read(res.adr);  // по адресу - значение
-        reg[r] += 2;                // TODO: +1
+		if (flag_b_cmd) {
+			res.val = b_read(res.adr);
+			reg[r]++;
+		}
+		if (((r == 7) || (r == 6)) && (flag_b_cmd))
+			reg[r]++; 		
+		if(!flag_b_cmd) {
+			res.val = w_read(res.adr);  // по адресу - значение
+			reg[r] += 2;
+		}
         // печать разной мнемоники для PC и других регистров
         if (r == 7)
             Log(TRACE, "#%o ", res.val);
@@ -88,9 +111,18 @@ Arg get_mr(word w)
 		break;
 	// мода 4, -(Rn)
 	case 4:
-		reg[r] -= 2;
-		res.adr = reg[r];
-		res.val = w_read(res.adr);
+		if(!flag_b_cmd){
+			reg[r] -= 2;
+			res.adr = reg[r];
+			res.val = w_read(res.adr);
+		}
+		if(flag_b_cmd) {
+			reg[r]--;
+			res.adr = reg[r];
+			res.val = b_read(res.adr);
+		}
+		if (((r == 7) || (r == 6)) && (flag_b_cmd))
+			reg[r]--;
 		Log(TRACE, "-(R%d) ", r);
 		break;
 	// мода 5, @-(Rn)
@@ -140,6 +172,7 @@ word read_cmd()
 Command parse_cmd(word w)
 {
 	for (int i = 0; ; i++) {
+		w = is_byte_cmd(w);
 		if ((w & command[i].mask) == command[i].opcode) {
 			Log(TRACE, "%s ", command[i].name);
 			if (command[i].mask != 0177777) { //halt не должен печатать R0 R0!!!

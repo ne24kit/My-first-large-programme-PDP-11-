@@ -25,6 +25,8 @@ typedef struct {
     address adr;    // адрес (куда)
 } Arg;
 
+word is_byte_cmd(word w);
+
 Arg get_mr(word w);
 
 Arg get_rn(word w);
@@ -44,6 +46,8 @@ void do_halt();
 void do_add();
 
 void do_mov();
+
+void do_movb();
 
 void do_sob();
 
