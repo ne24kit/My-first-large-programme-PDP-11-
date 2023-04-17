@@ -163,7 +163,7 @@ void test_mode2_from_mem_to_reg () //mov R3, (R5)+
 {
 	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
-	reg[3] = 47; //ss
+	reg[3] = 47;     //ss
 	reg[5] = 0500;   //dd
 	
 	w_write(0500, 57);
