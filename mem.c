@@ -6,11 +6,20 @@ word reg[REGSIZE];               // массив регистров R0..R7
 
 void b_write (address adr, byte val)
 {
+	if(adr < 8) {
+		reg[adr] = val;
+		if ((val >> 7) & 1)
+			reg[adr] |= 0xFF00;
+		return;
+	}
 	mem[adr] = val;
+	
 }
 
 byte b_read (address adr)
 {
+	if(adr < 8)
+		return reg[adr];
 	return mem[adr];
 }
 void w_write (address adr, word val)
