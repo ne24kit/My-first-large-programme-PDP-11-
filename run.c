@@ -2,19 +2,109 @@
 
 extern word reg[REGSIZE];
 
+byte flag_N;
+byte flag_Z;
+byte flag_V;
+byte flag_C;
+
 Arg get_mr(word w);
 
 Arg ss, dd, rnn;
 
+signed char xx;
+
 word flag_b_cmd;
 
-word is_byte_cmd(word w)
+void dumb_flags()
 {
-	if (w & 0100000)
-		flag_b_cmd = 1;
+	Log(TRACE, "\n N = %d Z = %d V = %d C = %d \n", flag_N, flag_Z, flag_V, flag_C);
+}
+
+void set_NZ(word w)
+{
+	flag_Z = w == 0; //флаг Z = 0, если w = 1
+	if (flag_b_cmd)
+		flag_N = (w >> 7) & 1;
 	else
-		flag_b_cmd = 0;
-	return  w;
+		flag_N = (w >> 15) & 1;
+}
+
+void set_C(unsigned int w)
+{
+	if (flag_b_cmd)
+		flag_C = (w >> 8) & 1;
+	else 
+		flag_C = (w >> 16) & 1;
+}
+
+void is_byte_cmd(word w)
+{
+	flag_b_cmd = (w >> 15) & 1;
+}
+
+void do_tst() //выставляет флаги N и Z, обнуляя V и С
+{
+	set_NZ(dd.val);
+	flag_V = 0;
+	flag_C = 0;
+}
+
+void do_clr()
+{
+	if (flag_b_cmd)
+		b_write(dd.adr, 0);
+	else
+		w_write(dd.adr, 0);
+	
+	flag_N = 0;
+	flag_Z = 1;
+	flag_V = 0;
+	flag_C = 0;
+}
+
+void do_br() //- не изменяет флаги
+{
+	pc += 2*xx;
+}
+
+void do_bcc() //Branch if Carry Clear
+{
+	if (flag_C == 0)
+		do_br();
+}
+void do_bcs() //Branch if Carry Set
+{
+	if (flag_C == 1)
+		do_br();
+}
+void do_beq() //Branch if Equal
+{
+	if (flag_Z == 1)
+		do_br();
+}
+void do_bne() //Branch if Not Equal
+{
+	if (flag_Z == 0)
+		do_br();
+}
+void do_bmi() //Branch if Minus
+{
+    if (flag_N == 1)
+        do_br();
+}
+
+void do_bpl() //Branch if Plus
+{
+    if (flag_N == 0) 
+        do_br();
+}
+
+void do_cmp() //вычисляет разность аргументов ss-dd и по этой разности выставляет все флаги
+{
+	unsigned int res = ss.val;
+	res -= dd.val;
+	set_NZ(res);
+	set_C(res);
 }
 
 void do_halt()
@@ -27,14 +117,22 @@ void do_halt()
 void do_add() 
 {
 	w_write(dd.adr, ss.val + dd.val);
+	unsigned int res = ss.val;
+	res += dd.val;
+	set_NZ(res);
+	set_C(res);
 }
 void do_mov() 
 {
 	w_write(dd.adr, ss.val);
+	set_NZ(ss.val);
+	flag_V = 0;
 }
 void do_movb()
 {
 	b_write(dd.adr, ss.val);
+	set_NZ(ss.val);
+	flag_V = 0;
 }
 void do_sob()
 {
@@ -57,7 +155,19 @@ Command command[] = {
 	{0170000, 0110000, "movb", do_movb, HAS_SS | HAS_DD},
 	{0177777, 0000000, "halt", do_halt, NO_PARAMS},
 	{0177700, 0005200, "inc",  do_inc, HAS_DD},
-	{0177000, 0077000, "sob",  do_sob, HAS_NN | HAS_R}, 
+	{0177000, 0077000, "sob",  do_sob, HAS_NN | HAS_R},
+	{0177700, 0005700, "tst",  do_tst, HAS_DD},
+	{0177700, 0105700, "tstb", do_tst, HAS_DD},
+	{0177400, 0000400, "br",   do_br,  HAS_XX},
+	{0177400, 0103000, "bcc",  do_bcc, HAS_XX},
+	{0177400, 0103400, "bcs",  do_bcs, HAS_XX},
+	{0177400, 0001400, "beq",  do_beq, HAS_XX},
+	{0177400, 0001000, "bne",  do_bne, HAS_XX},
+	{0177400, 0100400, "bmi",  do_bmi, HAS_XX},
+	{0177400, 0100000, "bmi",  do_bmi, HAS_XX},
+	{0177000, 0005000, "clr",  do_clr, HAS_DD},
+	{0170000, 0020000, "cmp",  do_cmp, HAS_SS | HAS_DD},
+	{0170000, 0120000, "cmpb", do_cmp, HAS_SS | HAS_DD},
 	{0000000, 0000000, "unknown", do_nothing, NO_PARAMS} //всегда в конце массива!!!
 };
 
@@ -153,8 +263,15 @@ Arg get_rnn(word w)
 	return res;
 }
 
+signed char get_xx(word w)
+{
+	Log(TRACE,"jmp to: %o ", pc+2*((signed char)w));
+	return w; //знаковое, то есть можно прыгать как вперед, так и назад!!!
+}
+
 void reg_dump()
 {
+	dumb_flags();
 	for(int i = 0; i < 8; i++)
 		Log(TRACE, "r%d:%o ", i, reg[i]);
 	Log(TRACE, "\n");
@@ -172,9 +289,10 @@ word read_cmd()
 Command parse_cmd(word w)
 {
 	for (int i = 0; ; i++) {
-		w = is_byte_cmd(w);
+		is_byte_cmd(w);
 		if ((w & command[i].mask) == command[i].opcode) {
 			Log(TRACE, "%s ", command[i].name);
+			//dumb_flags();
 			if (command[i].mask != 0177777) { //halt не должен печатать R0 R0!!!
 				if (command[i].params & HAS_SS)
 					ss = get_mr(w >> 6);
@@ -182,6 +300,8 @@ Command parse_cmd(word w)
 					dd = get_mr(w);
 				if (command[i].params & (HAS_NN | HAS_R))
 					rnn = get_rnn(w);
+				if (command[i].params & (HAS_XX))
+					xx = get_xx(w);
 			}
 			else
 				Log(TRACE, "\n");

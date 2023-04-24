@@ -11,6 +11,7 @@
 #define HAS_SS 2
 #define HAS_NN 4
 #define HAS_R  8
+#define HAS_XX 16
 
 typedef struct {
     word mask;
@@ -25,7 +26,31 @@ typedef struct {
     address adr;    // адрес (куда)
 } Arg;
 
-word is_byte_cmd(word w);
+signed char get_xx(word w);
+
+void do_clr();
+
+void do_br();
+
+void do_bcc();
+
+void do_bcs();
+
+void do_beq();
+
+void do_bne();
+
+void do_bmi();
+
+void do_bpl();
+
+void do_tst();
+
+void set_NZ(word w);
+
+void set_C(unsigned int w);
+
+void is_byte_cmd(word w);
 
 Arg get_mr(word w);
 
