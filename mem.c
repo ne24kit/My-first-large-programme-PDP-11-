@@ -11,8 +11,8 @@ void b_write (address adr, byte val)
 		if ((val >> 7) & 1)
 			reg[adr] |= 0xFF00;
 		return;
-	}
-	mem[adr] = val;
+	} else 
+		mem[adr] = val;
 	
 }
 
