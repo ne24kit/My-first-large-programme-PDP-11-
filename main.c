@@ -8,11 +8,14 @@
 
 int main(int argc, char * argv[])
 {	
+	
 	set_Log_level(DEBUG);
 	
 	test_mem();
 	tests_on_cmd();
-
+	
+	set_ostat();
+	
 	if(argc == 1 || argc == 2) {
 		how_to_use_keys(argv[0]);
 		exit(1);

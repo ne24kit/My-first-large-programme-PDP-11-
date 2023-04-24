@@ -4,6 +4,11 @@ static byte mem[MEMSIZE];		  // объявляем массив mem - "памя�
 
 word reg[REGSIZE];               // массив регистров R0..R7
 
+void set_ostat()
+{
+	w_write(ostat, 0xFFFF); 
+}
+
 void b_write (address adr, byte val)
 {
 	if(adr < 8) {
@@ -11,8 +16,10 @@ void b_write (address adr, byte val)
 		if ((val >> 7) & 1)
 			reg[adr] |= 0xFF00;
 		return;
-	} else 
-		mem[adr] = val;
+	}
+	/*if (adr == odata)
+		putchar(val);*/
+	mem[adr] = val;
 	
 }
 
@@ -28,8 +35,13 @@ void w_write (address adr, word val)
 		reg[adr] = val;
 		return;
 	}
+	if (adr == odata) {
+		putchar(val);
+	}
+	
 	mem[adr] = (byte)val;
 	mem[adr + 1] = (byte)(val >> 8);
+	
 }
 word w_read (address a)
 {

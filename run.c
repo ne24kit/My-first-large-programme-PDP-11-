@@ -95,7 +95,7 @@ void do_bmi() //Branch if Minus
 
 void do_bpl() //Branch if Plus
 {
-    if (flag_N == 0) 
+	if (flag_N == 0) 
         do_br();
 }
 
@@ -163,8 +163,8 @@ Command command[] = {
 	{0177400, 0103400, "bcs",  do_bcs, HAS_XX},
 	{0177400, 0001400, "beq",  do_beq, HAS_XX},
 	{0177400, 0001000, "bne",  do_bne, HAS_XX},
+	{0177400, 0100000, "bpl",  do_bpl, HAS_XX},
 	{0177400, 0100400, "bmi",  do_bmi, HAS_XX},
-	{0177400, 0100000, "bmi",  do_bmi, HAS_XX},
 	{0177000, 0005000, "clr",  do_clr, HAS_DD},
 	{0170000, 0020000, "cmp",  do_cmp, HAS_SS | HAS_DD},
 	{0170000, 0120000, "cmpb", do_cmp, HAS_SS | HAS_DD},
