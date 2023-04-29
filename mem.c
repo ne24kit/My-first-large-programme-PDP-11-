@@ -2,7 +2,7 @@
 
 static byte mem[MEMSIZE];		  // объявляем массив mem - "память" компьютера PDP-11 как глобальную переменную
 
-word reg[REGSIZE];               // массив регистров R0..R7
+word reg[REGSIZE];   // массив регистров R0..R7
 
 void b_write (address adr, byte val)
 {
@@ -29,6 +29,12 @@ void w_write (address adr, word val)
 	if(adr < 8) {
 		reg[adr] = val;
 		return;
+	}
+	
+	if(adr % 2 != 0)
+	{
+		Log(ERROR, "Попытка записать слово по нечетному адресу!\n");
+		exit(1);
 	}
 	if (adr == odata) {
 		putchar(val);
