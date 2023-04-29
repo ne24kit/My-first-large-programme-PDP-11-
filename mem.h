@@ -11,8 +11,8 @@
 #include "log.h"
 
 #define MEMSIZE (64*1024)   // размер памяти 64 килобайта
-#define pc reg[7]           // к rep[7] можем обращаться как pc
-#define sp reg[6]           // к rep[6] можем обращаться как sp
+#define pc reg[7]   // к rep[7] можем обращаться как pc
+#define sp reg[6]   // к rep[6] можем обращаться как sp
 #define REGSIZE 8
 #define ostat 0177564
 #define odata 0177566
