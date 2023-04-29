@@ -13,6 +13,10 @@ void test_mode0();
 
 void test_parse_mov();
 
+void test_parse_add();
+
+void test_parse_halt();
+
 void test_mode1_from_reg_to_mem();
 
 void test_mode1_from_mem_to_reg();
@@ -42,3 +46,9 @@ void test_mode5_from_mem_to_reg();
 void test_mode5_from_reg_to_mem();
 
 void test_mode5_from_mem_to_mem();
+
+void test_mode6_from_mem_to_reg();
+
+void test_mode6_from_reg_to_mem();
+
+void test_mode6_from_mem_to_mem();

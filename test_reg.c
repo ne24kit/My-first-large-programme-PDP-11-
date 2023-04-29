@@ -6,13 +6,14 @@ extern Command command[];
 
 extern word reg[REGSIZE];
 
-
 void tests_on_cmd()
 {
 	test_parse_mov();
-	test_mode0();
+	test_parse_add();
+	test_parse_halt();
 	test_mov();
 	Log(ERROR, "Тесты на определение команд пройдены\n");
+	test_mode0();
 	test_mode1_from_mem_to_reg();
 	test_mode1_from_reg_to_mem();
 	test_mode1_from_mem_to_mem();
@@ -28,21 +29,38 @@ void tests_on_cmd()
 	test_mode5_from_mem_to_reg();
 	test_mode5_from_reg_to_mem();
 	test_mode5_from_mem_to_mem();
-	registers_on_null();
+	test_mode6_from_mem_to_reg();
+	test_mode6_from_reg_to_mem();
+	test_mode6_from_mem_to_mem();
+	Log(ERROR, "Тесты на работу мод 1 - 6 пройдены\n\n");
 }
 
 // тест, что мы правильно определяем команды mov, add, halt
 void test_parse_mov()
 {
-    Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
-    Command cmd = parse_cmd(0017654);
+    Command cmd = parse_cmd(0011654);
     assert(!strcmp(cmd.name, "mov"));
-    Log(TRACE, " ... OK\n");
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 }
+
+void test_parse_add()
+{
+    Command cmd = parse_cmd(0061654);
+    assert(!strcmp(cmd.name, "add"));
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
+}
+
+
+void test_parse_halt()
+{   
+    Command cmd = parse_cmd(0);
+    assert(!strcmp(cmd.name, "halt"));
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
+}
+
 // тест, что мы разобрали правильно аргументы ss и dd в mov R5, R3
 void test_mode0()
-{
-    Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+{   
     reg[3] = 012;    // dd
     reg[5] = 034;    // ss
 	//						   ssdd
@@ -52,26 +70,22 @@ void test_mode0()
     assert(ss.adr == 5);
     assert(dd.val == 012);
     assert(dd.adr == 3);
-    Log(TRACE, " ... OK\n");
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 }
 // тест, что mov и мода 0 работают верно в mov R5, R3
 void test_mov()
-{
-    Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+{   
     reg[3] = 012;    // dd
     reg[5] = 034;    // ss
     Command cmd = parse_cmd(0010503);
     cmd.do_command();
     assert(reg[3] == 034);
     assert(reg[5] == 034);
-    Log(TRACE, " ... OK\n");
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 }
 
 void test_mode1_from_mem_to_reg() //mov (R5), R3
 {
-    Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
-
-
     // setup
     reg[5] = 0200;  // ss
     reg[3] = 12;    // dd
@@ -84,16 +98,13 @@ void test_mode1_from_mem_to_reg() //mov (R5), R3
     assert(dd.val == 12);
     assert(dd.adr == 3);
 
-
     cmd.do_command();
-
 
     assert(reg[3] == 34);
     // проверяем, что значение регистра не изменилось
     assert(reg[5] == 0200);
 
-
-    Log(TRACE, " ... OK\n");
+    Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -101,7 +112,6 @@ void test_mode1_from_mem_to_reg() //mov (R5), R3
 
 void test_mode1_from_reg_to_mem () //mov R3, (R5)
 { 
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	// setup
 	reg[3] = 76;    //ss
 	reg[5] = 0300;  //dd
@@ -121,17 +131,14 @@ void test_mode1_from_reg_to_mem () //mov R3, (R5)
 	assert(reg[5] == 0300);       //проверка, что значение (адресс) в reg[5] не изменилось
 	assert(w_read(0300) == 76);   //проверка, что изменилось в reg[5]
 	
-	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
-	
 }
 
 void test_mode1_from_mem_to_mem () //mov (R3), (R5)
 { 
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	// setup
 	reg[3] = 0300;    //ss
 	reg[5] = 0500;  //dd
@@ -152,8 +159,7 @@ void test_mode1_from_mem_to_mem () //mov (R3), (R5)
 	assert(reg[5] == 0500);       //проверка, что значение (адресс) в reg[5] не изменилось
 	assert(w_read(0500) == 67);   //проверка, что изменилось в reg[5]
 	
-	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -161,7 +167,6 @@ void test_mode1_from_mem_to_mem () //mov (R3), (R5)
 //мода 2 увеличивает значение регистра на два
 void test_mode2_from_mem_to_reg () //mov R3, (R5)+
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
 	reg[3] = 47;     //ss
 	reg[5] = 0500;   //dd
@@ -181,7 +186,7 @@ void test_mode2_from_mem_to_reg () //mov R3, (R5)+
 	assert(w_read(0500) == 47); //проверка, что изменилось в памяти 
 	assert(reg[5] == 0502);     //проверка, что значение (адресс) в reg[5] не изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -189,10 +194,9 @@ void test_mode2_from_mem_to_reg () //mov R3, (R5)+
 
 void test_mode2_from_reg_to_mem () //mov (R3)+, R5
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
 	reg[3] = 0300;     //ss
-	reg[5] = 57;   //dd
+	reg[5] = 57;       //dd
 	
 	w_write(0300, 47);
 	
@@ -209,7 +213,7 @@ void test_mode2_from_reg_to_mem () //mov (R3)+, R5
 	assert(reg[5] == 47);           //проверка, что изменилось в памяти 
 	assert(w_read(0300) == 47);     //проверка, что значение (адресс) в reg[5] не изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -217,7 +221,6 @@ void test_mode2_from_reg_to_mem () //mov (R3)+, R5
 
 void test_mode2_from_mem_to_mem () //mov (R3)+, (R5)+
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	// setup
 	reg[3] = 0300;    //ss
 	reg[5] = 0500;  //dd
@@ -238,7 +241,7 @@ void test_mode2_from_mem_to_mem () //mov (R3)+, (R5)+
 	assert(reg[5] == 0502);   
 	assert(w_read(0500) == 67);
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -246,7 +249,7 @@ void test_mode2_from_mem_to_mem () //mov (R3)+, (R5)+
 
 void test_mode3_from_mem_to_reg () //mov R3, @(R5)+
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+	
 	//setup
 	reg[3] = 47;     //ss
 	reg[5] = 0500;   //dd
@@ -268,7 +271,7 @@ void test_mode3_from_mem_to_reg () //mov R3, @(R5)+
 	assert(w_read(0600) == 47);   //проверка, что в значение поменялось
 	assert(reg[5] == 0502);       //проверка, что значение (адресс) в reg[5] не изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -276,7 +279,7 @@ void test_mode3_from_mem_to_reg () //mov R3, @(R5)+
 
 void test_mode3_from_reg_to_mem () //mov @(R3)+, R5
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+	
 	//setup
 	reg[3] = 0300;     //ss
 	reg[5] = 57;   //dd
@@ -298,8 +301,7 @@ void test_mode3_from_reg_to_mem () //mov @(R3)+, R5
 	assert(w_read(0400) == 47);     //проверка, что число 47 лежит по тому же адрессу
 	assert(reg[5] == 47);           //проверка, что изменилось в памяти 
 	
-	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -308,7 +310,7 @@ void test_mode3_from_reg_to_mem () //mov @(R3)+, R5
 
 void test_mode3_from_mem_to_mem () //mov @(R3)+, @(R5)+
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+	
 	// setup
 	reg[3] = 0300;    //ss
 	reg[5] = 0500;  //dd
@@ -334,7 +336,7 @@ void test_mode3_from_mem_to_mem () //mov @(R3)+, @(R5)+
 	assert(w_read(0500) == 0604);
 	assert(w_read(0604) == 47);
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -342,7 +344,7 @@ void test_mode3_from_mem_to_mem () //mov @(R3)+, @(R5)+
 
 void test_mode4_from_mem_to_reg () //mov R3, -(R5)
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
+	
 	//setup
 	reg[3] = 47;     //ss
 	reg[5] = 0500;   //dd
@@ -362,7 +364,7 @@ void test_mode4_from_mem_to_reg () //mov R3, -(R5)
 	assert(w_read(0476) == 47);  //проверка, что изменилось в памяти 
 	assert(reg[5] == 00476);     //проверка, что значение (адресс) в reg[5] не изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -370,7 +372,6 @@ void test_mode4_from_mem_to_reg () //mov R3, -(R5)
 
 void test_mode4_from_reg_to_mem () //mov -(R3), R5
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
 	reg[3] = 0300;     //ss
 	reg[5] = 57;   //dd
@@ -390,7 +391,7 @@ void test_mode4_from_reg_to_mem () //mov -(R3), R5
 	assert(reg[5] == 47);           //проверка, что изменилось в памяти 
 	assert(w_read(0276) == 47);     //проверка, что значение (адресс) в reg[5] не изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -398,9 +399,6 @@ void test_mode4_from_reg_to_mem () //mov -(R3), R5
 
 void test_mode4_from_mem_to_mem () //mov -(R3), -(R5)
 {
-	mem_clear();
-	
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	// setup
 	reg[3] = 0152;    //ss
 	reg[5] = 0252;  //dd
@@ -421,7 +419,7 @@ void test_mode4_from_mem_to_mem () //mov -(R3), -(R5)
 	assert(reg[5] == 0250);   
 	assert(w_read(0250) == 67);
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -429,7 +427,6 @@ void test_mode4_from_mem_to_mem () //mov -(R3), -(R5)
 
 void test_mode5_from_mem_to_reg () //mov R3, @-(R5)
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
 	reg[3] = 47;     //ss
 	reg[5] = 0502;   //dd
@@ -451,7 +448,7 @@ void test_mode5_from_mem_to_reg () //mov R3, @-(R5)
 	assert(w_read(0600) == 47);   //проверка, что в значение поменялось
 	assert(reg[5] == 0500);       //проверка, что значение (адресс) в reg[5] изменился
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -459,7 +456,6 @@ void test_mode5_from_mem_to_reg () //mov R3, @-(R5)
 
 void test_mode5_from_reg_to_mem () //mov @(R3)+, R5
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	//setup
 	reg[3] = 0302;     //ss
 	reg[5] = 57;       //dd
@@ -481,8 +477,7 @@ void test_mode5_from_reg_to_mem () //mov @(R3)+, R5
 	assert(w_read(0400) == 47);     //проверка, что число 47 лежит по тому же адрессу
 	assert(reg[5] == 47);           //проверка, что изменилось в памяти 
 	
-	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
@@ -490,7 +485,6 @@ void test_mode5_from_reg_to_mem () //mov @(R3)+, R5
 
 void test_mode5_from_mem_to_mem () //mov @(R3)+, @(R5)+
 {
-	Log(TRACE, "file: %s, line: %u, function: %s\n", __FILE__, __LINE__, __FUNCTION__ );
 	// setup
 	reg[3] = 0302;    //ss
 	reg[5] = 0502;    //dd
@@ -516,7 +510,92 @@ void test_mode5_from_mem_to_mem () //mov @(R3)+, @(R5)+
 	assert(w_read(0500) == 0604);
 	assert(w_read(0604) == 47);
 	
-	Log(TRACE, " ... OK\n");
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
+	
+	mem_clear();                  //очистка памяти 
+	registers_on_null();          //очистка регистров
+}
+
+void test_mode6_from_mem_to_reg() //mov R3, 4(R5)
+{
+	
+	// setup
+	reg[3] = 47;      //ss
+	reg[5] = 0500;    //dd
+	
+	pc = 01002;
+	w_write(01002, 4);
+	w_write(0504, 57);
+	
+	Command cmd = parse_cmd(0010365); // в режиме тестов мы сами пишем код команды без её разбора в функции read_cmd, где есть pc += 2;
+	
+	assert(ss.val == 47);
+	assert(ss.adr == 3);
+	//fprintf(stderr, "\ndd.val = %d dd.adr = %o\n", dd.val, dd.adr);
+	assert(dd.val == 57);
+	assert(dd.adr == 0504);
+	
+	cmd.do_command();
+	
+	assert(w_read(0504) == 47); //проверка на то, что по адресу 500 + 4 лежит число из reg[3]
+	
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
+	
+	mem_clear();                  //очистка памяти 
+	registers_on_null();          //очистка регистров
+}
+
+void test_mode6_from_reg_to_mem() //mov 4(R3), R5
+{
+	// setup
+	reg[3] = 0300;      //ss
+	reg[5] = 57;        //dd
+	
+	pc = 01002;
+	w_write(01002, 4);
+	w_write(0304, 47);
+	
+	Command cmd = parse_cmd(0016305); // в режиме тестов мы сами пишем код команды без её разбора в функции read_cmd, где есть pc += 2;
+	
+	assert(ss.val == 47);
+	assert(ss.adr == 0304);
+	assert(dd.val == 57);
+	assert(dd.adr == 5);
+	
+	cmd.do_command();
+	
+	assert(reg[5] == 47); //проверка на то, что в reg[5] лежит число из 300 + 4
+	
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
+	
+	mem_clear();                  //очистка памяти 
+	registers_on_null();          //очистка регистров
+}
+
+void test_mode6_from_mem_to_mem()
+{
+	// setup
+	reg[3] = 0300;      //ss
+	reg[5] = 0500;      //dd
+	
+	pc = 01002;
+	w_write(01002, 4);
+	w_write(0304, 47);
+	w_write(01004, 6);
+	w_write(0506, 57);
+	
+	Command cmd = parse_cmd(0016365); // в режиме тестов мы сами пишем код команды без её разбора в функции read_cmd, где есть pc += 2;
+	
+	assert(ss.val == 47);
+	assert(ss.adr == 0304);
+	assert(dd.val == 57);
+	assert(dd.adr == 0506);
+	
+	cmd.do_command();
+	
+	assert(w_read(0506) == 47); //проверка на то, что по адресу 500 + 6 лежит число из адреса 300 + 4
+	
+	Log(TRACE, "\nfile: %s, line: %u, function: %s is ... OK\n", __FILE__, __LINE__, __FUNCTION__ );
 	
 	mem_clear();                  //очистка памяти 
 	registers_on_null();          //очистка регистров
