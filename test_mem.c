@@ -61,7 +61,7 @@ void test_mem()
 	Log(DEBUG, "a=%06o b1=%02hhx b0=%02hhx b1_res=%02hhx b0_res=%02hhx\n ", a, b1, b0, b1_res, b0_res);
 	assert(b0 == b0_res && b1 == b1_res);
 	
-	Log(DEBUG, "Тесты пройдены успешно!\n");
+	Log(DEBUG, "Тесты на работу с памятью пройдены успешно!\n");
 }
 
 void size_of_data()
