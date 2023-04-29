@@ -219,10 +219,10 @@ Arg get_mr(word w)
 			reg[r] += 2;
 		}
         // печать разной мнемоники для PC и других регистров
-        if (r == 7)
-            Log(TRACE, "#%o ", res.val);
-        else
-            Log(TRACE, "(R%d)+ ", r);
+		if (r == 7)
+			Log(TRACE, "#%o ", res.val);
+		else
+			Log(TRACE, "(R%d)+ ", r);
         break;
 	// мода 3, @(R1)+
 	case 3:
