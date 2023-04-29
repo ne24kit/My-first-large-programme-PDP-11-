@@ -4,11 +4,6 @@ static byte mem[MEMSIZE];		  // объявляем массив mem - "памя�
 
 word reg[REGSIZE];               // массив регистров R0..R7
 
-void set_ostat()
-{
-	w_write(ostat, 0xFFFF); 
-}
-
 void b_write (address adr, byte val)
 {
 	if(adr < 8) {
@@ -17,8 +12,8 @@ void b_write (address adr, byte val)
 			reg[adr] |= 0xFF00;
 		return;
 	}
-	/*if (adr == odata)
-		putchar(val);*/
+	if (adr == odata)
+		putchar(val);
 	mem[adr] = val;
 	
 }
@@ -51,25 +46,9 @@ word w_read (address a)
 	return w & 0xFFFF;
 }
 
-void load_file(const char * filename)
-{	
-	FILE * fin  = fopen(filename, "r");   // открыть файл data.txt на чтение - поток fin
-	if (fin == NULL) {
-		perror("ERROR");
-		Log(ERROR, "FILE:  %s\n", filename);
-		exit(errno);
-	}
-	
-	address adr;
-	address size;
-	byte val;
-	while(fscanf(fin, "%04hx %04hx", &adr, &size) != EOF){
-		for(address i = 0; i < size; i++){
-			fscanf(fin, "%04hhx", &val);
-			b_write(adr+i, val);
-		}
-	}
-	fclose(fin);	
+void set_ostat()
+{
+	w_write(ostat, 0xFFFF); 
 }
 
 void mem_dump(address adr, int size)
@@ -81,9 +60,4 @@ void mem_dump(address adr, int size)
 void mem_clear()
 {
 	memset(mem, 0, sizeof(mem));
-}
-
-void how_to_use_keys(const char * progname)
-{
-	printf("to compile use: %s [-t] <filename>\n	<filename> - <input data>\n", progname);
 }

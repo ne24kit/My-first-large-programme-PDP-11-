@@ -1,18 +1,16 @@
-#include <stdio.h>
+#include "header.h"
 
-#include "mem.h"
-#include "test_mem.h"
-#include "test_reg.h"
-#include "run.h"
-#include "log.h"
+extern int level;
 
 int main(int argc, char * argv[])
 {	
 	
-	set_Log_level(DEBUG);
+	set_Log_level(TRACE);
 	
-	test_mem();
-	tests_on_cmd();
+	if (level == DEBUG) {
+		test_mem();
+		tests_on_cmd();
+	}
 	
 	set_ostat();
 	
@@ -21,19 +19,35 @@ int main(int argc, char * argv[])
 		exit(1);
 	}
 	
-	const char * filename = argv[argc-1];
-	
-	char trace = 0;
-	
-	if (argc == 3 && (0 == strcmp("-t", argv[1])))
-		trace = 1;
-	
 	load_file(argv[2]);
-	
-	//mem_dump(0x0200,  0x000c);
-	
-	
+		
 	run();
 	
 	return 0;
+}
+
+void load_file(const char * filename)
+{	
+	FILE * fin  = fopen(filename, "r");   // открыть файл filename на чтение - поток fin
+	if (fin == NULL) {
+		perror("ERROR");
+		Log(ERROR, "FILE:  %s\n", filename);
+		exit(errno);
+	}
+	
+	address adr;
+	address size;
+	byte val;
+	while(fscanf(fin, "%04hx %04hx", &adr, &size) != EOF){
+		for(address i = 0; i < size; i++){
+			fscanf(fin, "%04hhx", &val);
+			b_write(adr+i, val);
+		}
+	}
+	fclose(fin);	
+}
+
+void how_to_use_keys(const char * progname)
+{
+	printf("to compile use: %s [-t] <filename>\n	<filename> - <input data>\n", progname);
 }
