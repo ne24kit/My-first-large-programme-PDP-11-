@@ -130,6 +130,7 @@ void do_halt()
     //Log(INFO, "THE END!!!\n");
 	reg_dump();
     registers_on_null();
+	destroy_mem();
 	exit(0);
 }
 void do_add() 

@@ -23,7 +23,11 @@ typedef unsigned short word;
 
 typedef word address;
 
-void set_ostat();
+void set_ostat(); 
+
+void create_mem();
+
+void destroy_mem();
 
 void b_write (address adr, byte val); // пишем значение (байт) val по адресу adr
 

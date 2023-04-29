@@ -2,22 +2,30 @@
 
 extern int level;
 
+ int size_mem_mal;
+
 int main(int argc, char * argv[])
 {	
 	
 	set_Log_level(TRACE);
+
+	if(argc == 1 || argc == 2 || argc == 3) {
+		how_to_use_keys(argv[0]);
+		exit(1);
+	}
+	
+	size_mem_mal = strtol(argv[3], NULL, 10);
+	
+	fprintf(stderr, "size_mem_mal = %dkb\n", size_mem_mal);
+	
+	create_mem();
 	
 	if (level == DEBUG) {
 		test_mem();
 		tests_on_cmd();
 	}
 	
-	set_ostat();
-	
-	if(argc == 1 || argc == 2) {
-		how_to_use_keys(argv[0]);
-		exit(1);
-	}
+	set_ostat();	
 	
 	load_file(argv[2]);
 		
