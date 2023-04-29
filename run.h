@@ -28,6 +28,12 @@ typedef struct {
 
 signed char get_xx(word w);
 
+Arg get_r(word w);
+
+void do_jsr();
+
+void do_rts();
+
 void do_clr();
 
 void do_br();

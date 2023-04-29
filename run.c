@@ -9,7 +9,7 @@ byte flag_C;
 
 Arg get_mr(word w);
 
-Arg ss, dd, rnn;
+Arg ss, dd, rnn, reg_num;
 
 signed char xx;
 
@@ -17,7 +17,7 @@ word flag_b_cmd;
 
 void dumb_flags()
 {
-	Log(TRACE, "\n N = %d Z = %d V = %d C = %d \n", flag_N, flag_Z, flag_V, flag_C);
+	Log(TRACE, "\nN = %d Z = %d V = %d C = %d \n", flag_N, flag_Z, flag_V, flag_C);
 }
 
 void set_NZ(word w)
@@ -40,6 +40,21 @@ void set_C(unsigned int w)
 void is_byte_cmd(word w)
 {
 	flag_b_cmd = (w >> 15) & 1;
+}
+
+void do_jsr() //есть dd и reg_num - номер используемого регистра (reg_num.val не используется)
+{
+	sp -= 2;
+	w_write(sp, reg[reg_num.adr]);
+	reg[reg_num.adr] = pc;
+	pc = dd.adr;
+}
+
+void do_rts()
+{
+	pc = reg[reg_num.adr];
+	reg[reg_num.adr] = w_read(sp);
+	sp += 2;
 }
 
 void do_tst() //выставляет флаги N и Z, обнуляя V и С
@@ -72,16 +87,19 @@ void do_bcc() //Branch if Carry Clear
 	if (flag_C == 0)
 		do_br();
 }
+
 void do_bcs() //Branch if Carry Set
 {
 	if (flag_C == 1)
 		do_br();
 }
+
 void do_beq() //Branch if Equal
 {
 	if (flag_Z == 1)
 		do_br();
 }
+
 void do_bne() //Branch if Not Equal
 {
 	if (flag_Z == 0)
@@ -140,10 +158,7 @@ void do_sob()
 		return;
 	pc -= 2*rnn.val;
 }
-void do_inc()
-{
-	
-}
+
 void do_nothing() 
 {
 	
@@ -154,8 +169,9 @@ Command command[] = {
 	{0170000, 0010000, "mov",  do_mov, HAS_SS | HAS_DD},
 	{0170000, 0110000, "movb", do_movb, HAS_SS | HAS_DD},
 	{0177777, 0000000, "halt", do_halt, NO_PARAMS},
-	{0177700, 0005200, "inc",  do_inc, HAS_DD},
 	{0177000, 0077000, "sob",  do_sob, HAS_NN | HAS_R},
+	{0177000, 0004000, "jsr",  do_jsr, HAS_DD | HAS_R},
+	{0177770, 0000200, "rts",  do_rts, HAS_R},
 	{0177700, 0005700, "tst",  do_tst, HAS_DD},
 	{0177700, 0105700, "tstb", do_tst, HAS_DD},
 	{0177400, 0000400, "br",   do_br,  HAS_XX},
@@ -242,7 +258,20 @@ Arg get_mr(word w)
 		res.val = w_read(res.adr);
 		Log(TRACE, "@-(R%d) ", r);
 		break;
-		
+	// мода 6, x(Rn)
+	case 6:
+		{
+		word x = w_read(pc); //смещение
+		//fprintf(stderr, "\nx = %d\n", x);
+		pc += 2;
+		res.adr = reg[r] + x; //записали
+		res.val = w_read(res.adr);
+		if (r == 7)
+			Log(TRACE, "%o(pc) ", x);
+		else
+			Log(TRACE, "%o(R%d) ", x, r);
+		}
+		break;
     // мы еще не дописали другие моды
     default:
         Log(ERROR, "\nMode %d not implemented yet!\n", m);
@@ -265,15 +294,28 @@ Arg get_rnn(word w)
 
 signed char get_xx(word w)
 {
-	Log(TRACE,"jmp to: %o ", pc+2*((signed char)w));
+	Log(TRACE,"to: %o ", pc+2*((signed char)w));
 	return w; //знаковое, то есть можно прыгать как вперед, так и назад!!!
+}
+
+Arg get_r(word w)
+{
+	Arg res;
+	res.adr = w & 7;
+	if (res.adr == 7)
+		Log(TRACE, "pc ");
+	else
+		Log(TRACE, "R%d ", res.adr);
+	return res;
 }
 
 void reg_dump()
 {
 	dumb_flags();
-	for(int i = 0; i < 8; i++)
+	for(int i = 0; i < REGSIZE - 2; i++)
 		Log(TRACE, "r%d:%o ", i, reg[i]);
+	Log(TRACE, "sp:%o ", sp);
+	Log(TRACE, "pc:%o ", pc);
 	Log(TRACE, "\n");
 }
 
@@ -294,12 +336,16 @@ Command parse_cmd(word w)
 			Log(TRACE, "%s ", command[i].name);
 			//dumb_flags();
 			if (command[i].mask != 0177777) { //halt не должен печатать R0 R0!!!
+				if (command[i].params == (HAS_NN | HAS_R))
+					rnn = get_rnn(w);
+				if (command[i].params == (HAS_DD | HAS_R)) //разбор у jsr reg_num
+					reg_num = get_r(w >> 6);
+				if (command[i].params == (HAS_R))
+					reg_num = get_r(w);
 				if (command[i].params & HAS_SS)
 					ss = get_mr(w >> 6);
 				if (command[i].params & HAS_DD)
 					dd = get_mr(w);
-				if (command[i].params & (HAS_NN | HAS_R))
-					rnn = get_rnn(w);
 				if (command[i].params & (HAS_XX))
 					xx = get_xx(w);
 			}
@@ -312,7 +358,7 @@ Command parse_cmd(word w)
 
 void registers_on_null()
 {
-	for(int i = 0; i < 8; i++)
+	for(int i = 0; i < REGSIZE; i++)
 		reg[i] = 0;
 }
 
