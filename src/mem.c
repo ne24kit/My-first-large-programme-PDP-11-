@@ -106,6 +106,13 @@ word w_read (address adr)
 		return 0xFFFF;
 	if (adr == odata) 
 		return reg_od;
+	
+	if(adr % 2 != 0)
+	{
+		Log(ERROR, "Попытка прочесть слово по нечетному адресу!\n");
+		destroy_mem();
+		exit(1);
+	}
 	if (adr >= size_mem_mal*1024) {
 		Log(ERROR, "\nВыход за границы массива\n");
 		destroy_mem();
