@@ -7,6 +7,9 @@ extern int size_mem_mal;
 
 word reg[REGSIZE];   // массив регистров R0..R7
 
+word reg_os;
+word reg_od;
+
 void create_mem()
 {
 	mem = malloc(sizeof(unsigned char)*size_mem_mal*1024);
@@ -25,6 +28,10 @@ void b_write (address adr, byte val)
 			reg[adr] |= 0xFF00;
 		return;
 	}
+	if (adr == ostat) {
+		reg_os = 0xFFFF;
+		return;
+	}
 	if (adr == odata) {
 		putchar(val);
 		return;
@@ -37,12 +44,18 @@ void b_write (address adr, byte val)
 	}
 	mem[adr] = val;
 	
+	
+	
 }
 
 byte b_read (address adr)
 {
 	if(adr < 8)
 		return reg[adr];
+	if (adr == ostat)
+		return 0xFF;
+	if (adr == odata) 
+		return reg_od;
 	
 	if (adr >= size_mem_mal*1024) {
 		Log(ERROR, "\nВыход за границы массива\n");
@@ -67,40 +80,48 @@ void w_write (address adr, word val)
 		exit(1);
 	}
 	
+	if (adr == ostat) {
+		reg_os = 0xFFFF;
+		return;
+	}
 	if (adr == odata) {
-		fprintf(stderr, "\nadr = %o\n", adr);
 		putchar(val);
 		return;
 	}
-	
 	if (adr >= size_mem_mal*1024) {
-		fprintf(stderr, "\nadr = %o\n", adr);
+		fprintf(stderr, "adr = %o", adr);
 		Log(ERROR, "\n1Выход за границы массива\n");
 		destroy_mem();
 		exit(1);
 	}
 	
+	
 	mem[adr] = (byte)val;
 	mem[adr + 1] = (byte)(val >> 8);
 	
 }
-word w_read (address a)
+word w_read (address adr)
 {
-	if (a >= size_mem_mal*1024) {
+	if (adr == ostat)
+		return 0xFFFF;
+	if (adr == odata) 
+		return reg_od;
+	if (adr >= size_mem_mal*1024) {
 		Log(ERROR, "\nВыход за границы массива\n");
 		destroy_mem();
 		exit(0);
 	}
 	
-	word w = mem[a+1];
+	word w = mem[adr+1];
 	w = w << 8;
-	w |= mem[a];
+	w |= mem[adr];
 	return w & 0xFFFF;
 }
 
 void set_ostat()
 {
-	w_write(ostat, 0xFFFF); 
+	reg_os = 0xFFFF;
+	reg_od = 0;
 }
 
 void mem_dump(address adr, int size)

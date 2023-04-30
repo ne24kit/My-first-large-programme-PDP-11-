@@ -130,7 +130,6 @@ void do_halt()
     //Log(INFO, "THE END!!!\n");
 	reg_dump();
     registers_on_null();
-	destroy_mem();
 	exit(0);
 }
 void do_add() 
@@ -214,7 +213,7 @@ Arg get_mr(word w)
 			reg[r]++;
 		}
 		if (((r == 7) || (r == 6)) && (flag_b_cmd))
-			reg[r]++; 		
+			reg[r]++;	
 		if(!flag_b_cmd) {
 			res.val = w_read(res.adr);  // по адресу - значение
 			reg[r] += 2;

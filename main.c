@@ -2,14 +2,14 @@
 
 extern int level;
 
- int size_mem_mal;
+int size_mem_mal;
 
 int main(int argc, char * argv[])
 {	
 	
 	set_Log_level(TRACE);
 
-	if(argc == 1 || argc == 2 || argc == 3) {
+	if(argc != 4) {
 		how_to_use_keys(argv[0]);
 		exit(1);
 	}
