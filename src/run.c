@@ -15,7 +15,7 @@ signed char xx;
 
 word flag_b_cmd;
 
-void dumb_flags()
+void dump_flags()
 {
 	Log(TRACE, "\nN = %d Z = %d V = %d C = %d \n", flag_N, flag_Z, flag_V, flag_C);
 }
@@ -311,7 +311,7 @@ Arg get_r(word w)
 
 void reg_dump()
 {
-	dumb_flags();
+	dump_flags();
 	for(int i = 0; i < REGSIZE - 2; i++)
 		Log(TRACE, "r%d:%o ", i, reg[i]);
 	Log(TRACE, "sp:%o ", sp);
@@ -334,7 +334,7 @@ Command parse_cmd(word w)
 		is_byte_cmd(w);
 		if ((w & command[i].mask) == command[i].opcode) {
 			Log(TRACE, "%s ", command[i].name);
-			//dumb_flags();
+			//dump_flags();
 			if (command[i].mask != 0177777) { //halt не должен печатать R0 R0!!!
 				if (command[i].params == (HAS_NN | HAS_R))
 					rnn = get_rnn(w);
